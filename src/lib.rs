@@ -298,7 +298,8 @@ impl State {
     /// Returns a new State, or None if memory cannot be allocated for the state
     pub fn new_opt() -> Option<State> {
         return unsafe {
-            let L = raw::lua_newstate(alloc, ptr::null_mut());
+            //let L = raw::lua_newstate(alloc, ptr::null_mut());
+            let L = raw::luaL_newstate();
             if !L.is_null() {
                 raw::lua_atpanic(L, panic);
                 Some(State{ L: L, _stackspace: MINSTACK, _marker: marker::PhantomData })
@@ -307,6 +308,7 @@ impl State {
             }
         };
 
+        /*
         unsafe extern "C" fn alloc(_ud: *mut libc::c_void, ptr: *mut libc::c_void,
                                    _osize: libc::size_t, nsize: libc::size_t) -> *mut libc::c_void {
             if nsize == 0 {
@@ -316,6 +318,7 @@ impl State {
                 libc::realloc(ptr, nsize)
             }
         }
+        */
         unsafe extern "C" fn panic(L: *mut raw::lua_State) -> c_int {
             let s = RawState::from_lua_State(L).describe_(-1, false);
             panic!("unprotected error in call to Lua API ({})", s);
